@@ -46,6 +46,17 @@ Open: **http://localhost:3000**
 
 ---
 
+## 🚀 Vercel Deployment (Monorepo)
+
+To deploy the Frontend and Backend to Vercel:
+
+1.  **Connect your GitHub Repo** to a new project in Vercel.
+2.  **Environment Variables:** Add all variables from `backend/.env.example` to the Vercel project settings (prefixed by `process.env` in the backend).
+3.  **Automatic Routing:** The root `vercel.json` handles the monorepo structure, routing `/api` to the Node.js backend and all other traffic to the React frontend.
+4.  **Note:** The `ml_service` (Python) should be deployed separately (e.g., on Render, AWS, or DigitalOcean) as it requires a persistent Python environment and large ML dependencies.
+
+---
+
 ## 🔧 Core Modules
 
 ### 🔐 Multi-Role Access
