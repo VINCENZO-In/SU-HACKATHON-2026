@@ -1,0 +1,17 @@
+train: ../datasets/train/images
+val: ../datasets/valid/images
+test: ../datasets/test/images
+
+nc: 4
+names:
+  - Hole
+  - Stain
+  - BrokenYarn
+  - Misweave
+
+roboflow:
+  workspace: fd-oymgc
+  project: fb-ynxs8
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/fd-oymgc/fb-ynxs8/dataset/1

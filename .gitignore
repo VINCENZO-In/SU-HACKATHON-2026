@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+ml_service/venv/
+.venv/
+env/
+venv/
+
+# Environment Variables
+.env
+backend/.env
+ml_service/.env
+
+# Build outputs
+frontend/build/
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Python bits
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+backend/logs/
+ml_service/models/*.pt
+ml_service/models/*.onnx
+!ml_service/models/yolov8n.pt
+ml_service/runs/
