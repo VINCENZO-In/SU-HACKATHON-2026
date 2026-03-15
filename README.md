@@ -47,6 +47,7 @@ Open: **http://localhost:3000**
 ---
 
 ## 🚀 Vercel Deployment (Monorepo)
+OPEN ON  VERCEL : https://su-hackathon-2026.vercel.app/
 
 To deploy the Frontend and Backend to Vercel:
 
