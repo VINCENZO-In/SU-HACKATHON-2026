@@ -14,15 +14,19 @@ Key fixes in v4:
   • Auto image resize to 640px keeping aspect ratio
 """
 
-import os, base64, time, json
+import os, base64, time, json, asyncio, gc
 from pathlib import Path
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
 
 import cv2
 import numpy as np
 from fastapi import FastAPI, File, UploadFile, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from ultralytics import YOLO
+
+# Thread pool for synchronous inference tasks
+executor = ThreadPoolExecutor(max_workers=3)
 
 app = FastAPI(title="WeaveMind ML Service", version="4.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -145,6 +149,9 @@ def tiled_infer(img: np.ndarray, tile_size: int = 640, overlap: int = 100, conf:
 
     # Handle right/bottom edges if not covered
     # (Simplified for now, assuming standard resolutions)
+
+    # Explicit GC after large tiled inference to prevent memory creep
+    gc.collect()
 
     return nms(all_boxes, all_scores, all_labels)
 
@@ -300,7 +307,7 @@ async def detect(
 ):
     """Detect fabric defects in an uploaded image file."""
     if not model:
-        raise HTTPException(503, "Model not loaded — check server logs")
+        raise HTTPException(503, "Model not loaded")
 
     raw = await file.read()
     try:
@@ -308,7 +315,11 @@ async def detect(
     except ValueError as e:
         raise HTTPException(400, str(e))
 
-    dets, annotated, summary, g, ms = infer(img, conf, iou)
+    # Run sync inference in executor to avoid blocking event loop
+    loop = asyncio.get_event_loop()
+    dets, annotated, summary, g, ms = await loop.run_in_executor(
+        executor, lambda: infer(img, conf, iou)
+    )
     h, w = annotated.shape[:2]
 
     return {
@@ -352,7 +363,11 @@ async def detect_frame(body: dict):
     except Exception as e:
         raise HTTPException(400, f"Frame decode error: {e}")
 
-    dets, annotated, summary, g, ms = infer(img, conf)
+    # Run sync inference in executor
+    loop = asyncio.get_event_loop()
+    dets, annotated, summary, g, ms = await loop.run_in_executor(
+        executor, lambda: infer(img, conf)
+    )
     h, w = annotated.shape[:2]
 
     return {
@@ -398,7 +413,11 @@ async def ws_camera(websocket: WebSocket):
                 await websocket.send_text(json.dumps({"error": str(e)}))
                 continue
 
-            dets, annotated, summary, g, ms = infer(img, conf)
+            # Run sync inference in executor
+            loop = asyncio.get_event_loop()
+            dets, annotated, summary, g, ms = await loop.run_in_executor(
+                executor, lambda: infer(img, conf)
+            )
 
             await websocket.send_text(json.dumps({
                 "status":               "ok",
