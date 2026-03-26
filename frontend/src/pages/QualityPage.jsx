@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useSocketEvent } from '../hooks/useSocket';
 import CameraScanner from '../components/CameraScanner';
 
-const ML_URL = 'http://localhost:8000';
+import { ML_SERVICE_URL } from '../utils/config';
 const GRADE_COLOR  = { A:'var(--green)', B:'var(--accent)', C:'var(--yellow)', REJECT:'var(--red)' };
 const GRADE_BADGE  = { A:'badge-green', B:'badge-blue', C:'badge-yellow', REJECT:'badge-red' };
 const DEFECT_COLORS = {
@@ -65,8 +65,8 @@ export default function QualityPage() {
   const checkML = async () => {
     try {
       const [h, m] = await Promise.all([
-        fetch(ML_URL + '/health').then(r => r.json()),
-        fetch(ML_URL + '/model/info').then(r => r.json())
+        fetch(ML_SERVICE_URL + '/health').then(r => r.json()),
+        fetch(ML_SERVICE_URL + '/model/info').then(r => r.json())
       ]);
       setMlOnline(h.status === 'ok');
       setModelInfo(m);
@@ -112,7 +112,7 @@ export default function QualityPage() {
       fd.append('machine_id', detectMachineId);
       fd.append('conf', String(detectConf));
       const res = await fetch(
-        ML_URL + '/detect?batch_id=' + batchId + '&machine_id=' + detectMachineId + '&conf=' + detectConf,
+        ML_SERVICE_URL + '/detect?batch_id=' + batchId + '&machine_id=' + detectMachineId + '&conf=' + detectConf,
         { method:'POST', body:fd }
       );
       const data = await res.json();

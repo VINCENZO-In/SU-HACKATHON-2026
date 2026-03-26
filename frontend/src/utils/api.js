@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from './config';
 
 const isProd = process.env.NODE_ENV === 'production';
-const API = axios.create({ baseURL: isProd ? '/api' : 'http://localhost:5001/api' });
+const API = axios.create({ baseURL: isProd ? '/api' : API_BASE_URL });
 
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('wm_token');

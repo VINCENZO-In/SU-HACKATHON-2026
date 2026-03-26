@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ML_URL = 'http://localhost:8000';
+import { ML_SERVICE_URL, WS_ML_URL } from '../utils/config';
 
 const DEFECT_COLORS = {
   Hole: '#ff4757', Stain: '#ff6b35', BrokenYarn: '#ffd32a',
@@ -46,7 +46,7 @@ export default function CameraPage() {
   // ── ML health check ───────────────────────────────────────────────────────
   useEffect(() => {
     const check = async () => {
-      try { const r = await fetch(ML_URL + '/health'); const d = await r.json(); setMlOnline(d.status === 'ok'); }
+      try { const r = await fetch(ML_SERVICE_URL + '/health'); const d = await r.json(); setMlOnline(d.status === 'ok'); }
       catch { setMlOnline(false); }
     };
     check();
@@ -134,7 +134,7 @@ export default function CameraPage() {
       const frame = captureFrame(0.88);
       if (!frame) throw new Error('No frame captured');
       const batchId = 'SNAP-' + Date.now();
-      const res = await fetch(ML_URL + '/detect/frame', {
+      const res = await fetch(ML_SERVICE_URL + '/detect/frame', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ frame, conf, machine_id: machineId, batch_id: batchId })
       });
@@ -147,7 +147,7 @@ export default function CameraPage() {
   // ── WebSocket live stream ─────────────────────────────────────────────────
   const startStream = () => {
     if (!mlOnline) return;
-    const ws = new WebSocket('ws://localhost:8000/ws/camera');
+    const ws = new WebSocket(WS_ML_URL);
     wsRef.current = ws;
     ws.onopen = () => {
       setStreamActive(true);
@@ -179,7 +179,7 @@ export default function CameraPage() {
     fd.append('file', file); fd.append('conf', conf);
     fd.append('batch_id', 'UPLOAD-' + Date.now()); fd.append('machine_id', machineId);
     try {
-      const res = await fetch(ML_URL + '/detect', { method: 'POST', body: fd });
+      const res = await fetch(ML_SERVICE_URL + '/detect', { method: 'POST', body: fd });
       const data = await res.json();
       setResult(data); addHistory(data); checkConsec(data);
     } catch (e) { setResult({ error: e.message }); }
