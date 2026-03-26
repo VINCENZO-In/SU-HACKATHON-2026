@@ -6,10 +6,12 @@ exports.protect = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ msg: 'No token provided' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) return res.status(401).json({ msg: 'User no longer exists. Please re-login.' });
+    req.user = user;
     next();
   } catch {
-    res.status(401).json({ msg: 'Invalid token' });
+    res.status(401).json({ msg: 'Invalid token or session expired' });
   }
 };
 
